@@ -1,40 +1,38 @@
-version: "3.9"
-
 services:
   fastapi:
     build: ./upwork_api
     container_name: fastapi_app
-    restart: always
+    restart: no
     env_file: .env
     depends_on:
       - postgres
     ports:
       - "8000:8000"
     volumes:
-      - ./upwork-api:/app
       - ./playwright_cache:/root/.cache/ms-playwright
+      - ./cloned-profile:/root/.config/chrome-profile
+      - ./upwork_api/state_data:/app/state_data
+      - ./upwork_api/data:/app/data
+    environment:
+      - DISPLAY=:99
     networks:
       - backend
 
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
-    restart: always
+    restart: unless-stopped
     env_file: .env
     ports:
       - "5678:5678"
     environment:
       - N8N_HOST=${N8N_HOST}
       - N8N_PORT=${N8N_PORT}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_RUNNERS_ENABLED=true
     volumes:
       - ./n8n_data:/home/node/.n8n
     depends_on:
@@ -44,9 +42,9 @@ services:
       - backend
 
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     container_name: postgres
-    restart: always
+    restart: unless-stopped
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
