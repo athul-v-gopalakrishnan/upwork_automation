@@ -1,0 +1,19 @@
+services:
+  fastapi:
+    volumes:
+      - ./playwright_cache:/root/.cache/ms-playwright
+      - ./cloned-profile:/root/.config/chrome-profile
+      - ./upwork_api/state_data:/app/state_data
+      - ./upwork_api/data:/app/data
+    restart: unless-stopped
+
+  n8n:
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+  frontend:
+    build:
+      context: 
+        ./upwork_frontend
+    ports:
+      - "80:80"

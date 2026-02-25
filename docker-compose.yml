@@ -2,19 +2,20 @@ services:
   fastapi:
     build: ./upwork_api
     container_name: fastapi_app
-    restart: no
     env_file: .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
-    volumes:
-      - ./playwright_cache:/root/.cache/ms-playwright
-      - ./cloned-profile:/root/.config/chrome-profile
-      - ./upwork_api/state_data:/app/state_data
-      - ./upwork_api/data:/app/data
     environment:
       - DISPLAY=:99
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - backend
 
@@ -36,8 +37,10 @@ services:
     volumes:
       - ./n8n_data:/home/node/.n8n
     depends_on:
-      - postgres
-      - fastapi
+      postgres:
+        condition: service_healthy
+      fastapi:
+        condition: service_healthy
     networks:
       - backend
 
@@ -48,6 +51,16 @@ services:
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  frontend:
+    container_name: upwork_frontend
     networks:
       - backend
 

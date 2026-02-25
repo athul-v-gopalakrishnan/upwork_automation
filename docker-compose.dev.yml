@@ -1,0 +1,23 @@
+services:
+  fastapi:
+    volumes:
+      - ./upwork_api:/app
+      - ./playwright_cache:/root/.cache/ms-playwright
+      - ./cloned-profile:/root/.config/chrome-profile
+    restart: no
+    command: /app/start.dev.sh
+
+  n8n:
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+  frontend:
+    image: node:20-slim
+    working_dir: /app
+    volumes:
+      - ./upwork_frontend:/app
+    env_file:
+      - .env
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
