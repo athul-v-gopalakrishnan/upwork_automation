@@ -2,12 +2,9 @@ services:
   fastapi:
     build: ./upwork_api
     container_name: fastapi_app
-    env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8000:8000"
     environment:
       - DISPLAY=:99
     healthcheck:
@@ -19,43 +16,28 @@ services:
     networks:
       - backend
 
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: n8n
-    restart: unless-stopped
-    env_file: .env
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PORT=${N8N_PORT}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
-      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
-      - N8N_RUNNERS_ENABLED=true
-    volumes:
-      - ./n8n_data:/home/node/.n8n
-    depends_on:
-      postgres:
-        condition: service_healthy
-      fastapi:
-        condition: service_healthy
-    networks:
-      - backend
+  # n8n:
+  #   image: n8nio/n8n:latest
+  #   container_name: n8n
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5678:5678"
+  #   volumes:
+  #     - ./n8n_data:/home/node/.n8n
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     fastapi:
+  #       condition: service_healthy
+  #   networks:
+  #     - backend
 
   postgres:
     image: pgvector/pgvector:pg15
     container_name: postgres
     restart: unless-stopped
-    env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - backend
 

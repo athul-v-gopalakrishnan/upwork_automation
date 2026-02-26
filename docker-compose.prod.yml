@@ -6,14 +6,26 @@ services:
       - ./upwork_api/state_data:/app/state_data
       - ./upwork_api/data:/app/data
     restart: unless-stopped
+    env_file:
+      - .env.prod
+    ports:
+      - "127.0.0.1:8000:8000"
 
-  n8n:
-    volumes:
-      - ./n8n_data:/home/node/.n8n
+  # n8n:
+  #   volumes:
+  #     - ./n8n_data:/home/node/.n8n
 
   frontend:
     build:
-      context: 
-        ./upwork_frontend
-    ports:
-      - "80:80"
+      context: ./upwork_frontend
+    volumes:
+      - /var/www/mvp-frontend:/app/dist
+
+  postgres:
+    env_file:
+      - .env.prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
