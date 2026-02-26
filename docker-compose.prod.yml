@@ -19,7 +19,7 @@ services:
     build:
       context: ./upwork_frontend
     volumes:
-      - /var/www/mvp-frontend:/app/dist
+      - /var/www/mvp-frontend:/output
 
   postgres:
     env_file:
